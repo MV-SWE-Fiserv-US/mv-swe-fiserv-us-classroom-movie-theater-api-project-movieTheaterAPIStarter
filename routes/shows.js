@@ -1,5 +1,6 @@
 const express = require("express");
 const { User, Show } = require("../models");
+const { Sequelize, Op } = require("sequelize");
 // const { check, validationResult } = require("express-validator");
 const router = express.Router();
 
@@ -17,7 +18,7 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-router.get("/:id", async (req, res, next) => {
+router.get("/:id([0-9]+)", async (req, res, next) => {
   try {
     const show = await Show.findByPk(req.params.id);
     if (!show) {
@@ -48,7 +49,11 @@ router.get("/:id/users", async (req, res, next) => {
 
 router.get("/:genre", async (req, res, next) => {
   try {
-    const show = await Show.findAll({ where: { genre: req.params.genre } });
+    const show = await Show.findAll({
+      where: Sequelize.where(Sequelize.fn("lower", Sequelize.col("genre")), {
+        [Op.like]: `%${req.params.genre}%`,
+      }),
+    });
     if (!show) {
       const error = new Error("Shows not found");
       error.status = 404;
@@ -69,7 +74,7 @@ router.put("/:id/available", async (req, res, next) => {
       error.status = 404;
       throw error;
     }
-    await show.update({ available: !available });
+    await show.update({ available: !show.available });
     res.json(show);
   } catch (err) {
     next(err);
