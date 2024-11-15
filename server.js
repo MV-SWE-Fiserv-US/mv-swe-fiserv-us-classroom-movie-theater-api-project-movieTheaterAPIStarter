@@ -1,9 +1,7 @@
 const express = require("express");
 const PORT = 3000;
 const app = express();
-const { db } = require("./db/connection");
-const userRoutes = require("./routes/users");
-const showRoutes = require("./routes/shows");
+const { showRoutes, userRoutes } = require("./routes");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -18,6 +16,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  //   db.sync();
   console.log(`Listening at http://localhost:${PORT}`);
 });
