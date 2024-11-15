@@ -1,7 +1,7 @@
 const express = require("express");
 const { User, Show } = require("../models");
 const { Sequelize, Op } = require("sequelize");
-// const { check, validationResult } = require("express-validator");
+const { check, validationResult } = require("express-validator");
 const router = express.Router();
 
 router.get("/", async (req, res, next) => {
@@ -64,6 +64,29 @@ router.get("/:genre", async (req, res, next) => {
     next(err);
   }
 });
+
+router.post(
+  "/",
+  [
+    check("title").notEmpty().trim().isLength({ max: 25 }),
+    check("genre").notEmpty().trim(),
+    check("available").isBoolean(),
+  ],
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        res.json({ error: errors.array() });
+      } else {
+        const newShow = await Show.create(req.body);
+        res.json(newShow);
+      }
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 router.put("/:id/available", async (req, res, next) => {
   // update the available property of a show

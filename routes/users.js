@@ -1,5 +1,5 @@
 const express = require("express");
-// const { check, validationResult } = require("express-validator");
+const { check, validationResult } = require("express-validator");
 const router = express.Router();
 const { User, Show } = require("../models");
 
@@ -46,6 +46,28 @@ router.get("/:id/shows", async (req, res, next) => {
   }
 });
 
+router.post(
+  "/",
+  [
+    check("username").notEmpty().isEmail().trim(),
+    check("password").notEmpty().trim(),
+  ],
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        res.json({ error: errors.array() });
+      } else {
+        const newUser = await User.create(req.body);
+        res.json(newUser);
+      }
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 router.put("/:id/shows/:showId", async (req, res, next) => {
   // associate a user with a show they have watched
   const { id, showId } = req.params;
@@ -63,6 +85,21 @@ router.put("/:id/shows/:showId", async (req, res, next) => {
     }
     await user.addShow(show);
     await user.reload({ include: Show });
+    res.json(user);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete("/:id", async (req, res, next) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) {
+      const error = new Error("User not found");
+      error.status = 404;
+      throw error;
+    }
+    await user.destroy();
     res.json(user);
   } catch (err) {
     next(err);
