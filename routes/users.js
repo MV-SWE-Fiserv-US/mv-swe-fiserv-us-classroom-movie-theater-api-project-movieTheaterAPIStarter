@@ -40,7 +40,7 @@ router.get("/:id/shows", async (req, res, next) => {
       error.status = 404;
       throw error;
     }
-    res.send(user);
+    res.json(user);
   } catch (err) {
     next(err);
   }
